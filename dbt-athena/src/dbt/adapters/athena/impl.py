@@ -922,6 +922,9 @@ class AthenaAdapter(SQLAdapter):
         creds = conn.credentials
         client = conn.handle
 
+        data_catalog = self._get_data_catalog(relation.database)
+        catalog_id = get_catalog_id(data_catalog)
+
         with boto3_client_lock:
             glue_client = client.session.client(
                 "glue",
@@ -932,6 +935,7 @@ class AthenaAdapter(SQLAdapter):
         paginator = glue_client.get_paginator("get_table_versions")
         response_iterator = paginator.paginate(
             **{
+                "CatalogId": catalog_id,
                 "DatabaseName": relation.schema,
                 "TableName": relation.identifier,
             }
